@@ -1,14 +1,34 @@
 <template>
   <div class="item">
-    <img src="../assets/logo.png" alt="abc" />
-    <span>Acer</span>
-    <span class="price">$10.00</span>
+    <img
+      :src="data?.imageUrl"
+      @error="$event.target.src = '/default-item.jpg'"
+    />
+    <span class="name">{{ slicedName || 'Noname' }}</span>
+    <span class="price">${{ data.price || 0 }}</span>
   </div>
 </template>
 
 <script>
+const maxNameLength = 20;
+
 export default {
   name: 'Item',
+  props: {
+    data: {
+      type: Object,
+      required: true,
+    },
+  },
+  computed: {
+    slicedName: function () {
+      if (this.data.name && this.data.name.length > maxNameLength) {
+        return `${this.data.name.slice(0, maxNameLength)}...`;
+      }
+
+      return this.data.name;
+    },
+  },
 };
 </script>
 
@@ -23,9 +43,9 @@ export default {
 }
 
 img {
-  min-width: 100%;
-  height: auto;
-  flex-shrink: 0;
+  width: 12rem;
+  height: 12rem;
+  object-fit: contain;
 }
 
 .price {

@@ -4,9 +4,14 @@
     <store-name class="store-name" />
   </div>
   <div class="main">
-    <search-box class="search-box" />
-    <list-items class="list-items" />
-    <pagination class="pagination" />
+    <search-box v-model:queryString="queryString" class="search-box" />
+    <list-items :items="showedItems" class="list-items" />
+    <h5 v-if="filteredItems.length === 0">No item found</h5>
+    <pagination
+      class="pagination"
+      :maxPageNumber="maxPageNumber"
+      v-model:currentPage="currentPage"
+    />
   </div>
 </template>
 
@@ -17,9 +22,60 @@ import SearchBox from './components/SearchBox';
 import ListItems from './components/ListItems.vue';
 import Pagination from './components/Pagination.vue';
 
+const maxItemsPerPage = 6;
+
 export default {
   name: 'App',
   components: { Logo, StoreName, SearchBox, ListItems, Pagination },
+  data: function () {
+    return {
+      listItems: [],
+      queryString: '',
+      itemsPerPage: maxItemsPerPage,
+      currentPage: 1,
+    };
+  },
+  computed: {
+    filteredItems: function () {
+      const splitedQueryString = this.queryString
+        .trim()
+        .toLowerCase()
+        .split(/\s+/);
+
+      return this.listItems.filter((val) => {
+        for (const word of splitedQueryString) {
+          if (!val.name.toLowerCase().includes(word)) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+    },
+    showedItems: function () {
+      return this.filteredItems.slice(
+        (this.currentPage - 1) * this.itemsPerPage,
+        this.currentPage * this.itemsPerPage
+      );
+    },
+    maxPageNumber: function () {
+      return Math.ceil(this.filteredItems.length / this.itemsPerPage) || 1;
+    },
+  },
+  created: function () {
+    fetch('https://run.mocky.io/v3/7af6f34b-b206-4bed-b447-559fda148ca5')
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        this.listItems = data;
+      });
+  },
+  watch: {
+    filteredItems: function () {
+      this.currentPage = 1;
+    },
+  },
 };
 </script>
 
@@ -31,10 +87,8 @@ export default {
 
 * {
   box-sizing: border-box;
-}
-
-body {
   margin: 0;
+  padding: 0;
 }
 
 #app {
